@@ -87,23 +87,25 @@ p6 = (p5
 )
 
 tbar_taper_width = abs(tan(((90 - 75) / 180) * pi) * (highest - thickness))
-tbar_cut_length = thickness + tbar_diameter + tbar_taper_width + 1
+tbar_cut_length = thickness + tbar_diameter + tbar_taper_width
+
+rect_inner_width = (width - taper_width * 2) / -2 - thickness * 2
 
 p7 = (p6
   .faces("<Z")
   .workplane(centerOption="CenterOfBoundBox", invert=True)
-  .move(0, length / -2 + tbar_cut_length / 2)
-  .rect(tbar_22_retracted, tbar_cut_length)
+  .move(0, length / -2 + taper_width + thickness)
+  .rect(tbar_24_retracted, tbar_cut_length)
   .cutBlind(tbar_diameter)
   .faces("<Z")
-  .workplane(centerOption="CenterOfBoundBox", invert=True)
-  .move(0, length / 2 - tbar_cut_length / 2)
-  .rect(tbar_22_retracted, tbar_cut_length)
+  .workplane(invert=True)
+  .move(0, length / 2 - taper_width - thickness)
+  .rect(tbar_24_retracted, tbar_cut_length)
   .cutBlind(tbar_diameter)
 )
 
-tbar_space = width - rect_bottom_width
-tbar_pin_x = inner_wall + tbar_space / 2
+tbar_space = width / 2 - tbar_24_retracted / 2
+tbar_pin_x = tbar_space
 tbar_pin_y = inner_wall + tbar_diameter / 2
 
 p8 = (p7
@@ -120,31 +122,27 @@ p8 = (p7
 p9 = (p8
   .edges(
       NearestToPointSelector((inner_wall, length / 2, -highest + thickness))
-    + NearestToPointSelector((inner_wall, inner_wall + tbar_diameter, -highest + thickness))
     + NearestToPointSelector((inner_wall, inner_wall + tbar_diameter, -highest / 2))
-    + NearestToPointSelector((inner_wall, length - (inner_wall + tbar_diameter), -highest + thickness))
     + NearestToPointSelector((inner_wall, length - (inner_wall + tbar_diameter), -highest / 2))
-    
+
     + NearestToPointSelector((width - inner_wall, length / 2, -highest + thickness))
-    + NearestToPointSelector((width - inner_wall, inner_wall + tbar_diameter, -highest + thickness))
     + NearestToPointSelector((width - inner_wall, inner_wall + tbar_diameter, -highest / 2))
-    + NearestToPointSelector((width - inner_wall, length - (inner_wall + tbar_diameter), -highest + thickness))
     + NearestToPointSelector((width - inner_wall, length - (inner_wall + tbar_diameter), -highest / 2))
   )
-  .fillet(1.0)
+  .fillet(0.5)
 )
 
 p10 = (p9
   .edges(
-      NearestToPointSelector((tbar_pin_x, tbar_cut_length, -highest + thickness / 2))
-    + NearestToPointSelector((width - tbar_pin_x, tbar_cut_length, -highest + thickness / 2))
-    + NearestToPointSelector((tbar_pin_x, length - tbar_cut_length, -highest + thickness / 2))
-    + NearestToPointSelector((width - tbar_pin_x, length - tbar_cut_length, -highest + thickness / 2))
+      NearestToPointSelector((tbar_pin_x - 0.5, tbar_cut_length, -highest + thickness / 2))
+    + NearestToPointSelector((width - tbar_pin_x + 0.5, tbar_cut_length, -highest + thickness / 2))
+    + NearestToPointSelector((tbar_pin_x - 0.5, length - tbar_cut_length, -highest + thickness / 2))
+    + NearestToPointSelector((width - tbar_pin_x + 0.5, length - tbar_cut_length, -highest + thickness / 2))
   )
-  .fillet(1.0)
+  .fillet(0.47)
 )
  
-crl = length - crush_rib_length;
+crl = length - crush_rib_length
 
 rib_sketch = (p10
   .faces(">Z")
@@ -197,4 +195,4 @@ case = rib_cut
 
 show_object(case)
 
-exporters.export(case, "wc2lf.stl")
+exporters.export(case, "wc2lf24.stl")

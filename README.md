@@ -21,5 +21,8 @@ Download CADQuery and run the script for the desired case.
 
 ### 1 - Curved design to absolutely minimize all space possible
 
+![1](./pictures/1.png)
+
 ### 2 - Optimize for size but support tbar straps and crush rib fitting
 
+![2](./pictures/2.png)
