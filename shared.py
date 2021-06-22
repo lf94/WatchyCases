@@ -2,7 +2,7 @@ nozzle_diameter = 0.2
 
 thickness = 1.0
 
-crush_rib_length = 1.2
+crush_rib_length = 2.4
 crush_rib_depth  = 1.0
 
 width   = 31.5 # Gives room for buttons to poke out.

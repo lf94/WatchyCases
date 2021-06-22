@@ -82,8 +82,8 @@ p5 = (p4
 )
 
 p6 = (p5
-  .faces("<<Y[3]").wires().toPending().translate((0, -tbar_diameter, 0)).toPending().loft()
-  .faces(">>Y[3]").wires().toPending().translate((0, tbar_diameter, 0)).toPending().loft()
+  .faces(NearestToPointSelector((width / 2, length - (taper_width + thickness), -highest / 2))).wires().toPending().translate((0, -tbar_diameter, 0)).toPending().loft()
+  .faces(NearestToPointSelector((width / 2, (taper_width + thickness), -highest / 2))).wires().toPending().translate((0, tbar_diameter, 0)).toPending().loft()
 )
 
 tbar_taper_width = abs(tan(((90 - 75) / 180) * pi) * (highest - thickness))
@@ -142,11 +142,11 @@ p10 = (p9
   .fillet(0.47)
 )
  
-crl = length - crush_rib_length
+crl = (length - crush_rib_length) + 1.0
 
 rib_sketch = (p10
   .faces(">Z")
-  .workplane(origin=(0, crush_rib_length / 2, 0))
+  .workplane(origin=(0, crush_rib_length / 2 - 0.5, 0))
   .hLine(1.0)
   .sagittaArc((3.0, 0.0), 0.5)
   .hLineTo((width / 2) - 1.0)
@@ -166,33 +166,21 @@ rib_sketch = (p10
   .cutBlind(-crush_rib_depth)
 )
 
-rib_cut_close = (Workplane("YZ")
-  .polarLine(crush_rib_length, 360 - 45)
-  .vLineTo(0)
-  .hLineTo(0)
-  .close().extrude(width)
+watchy_fake = (Workplane("XY")
+  .move(width / 2, length / 2)
+  .rect(width, length - crush_rib_length)
+  .extrude(1)
 )
-
-rib_cut_far = (Workplane("YZ")
-  .transformed(rotate=(0, 0, 360 - 90))
-  .polarLine(crush_rib_length, 360 - 45)
-  .hLineTo(0)
-  .vLineTo(0)
-  .close()
-  .extrude(width)
-)
-
-rib_cut_depth = (crush_rib_length * sqrt(2)) / 2
 
 rib_cut = (rib_sketch
-  .workplane(origin=(0, 0, 0))
-  .cut(rib_cut_close.translate((0, crush_rib_length / 2, 0)))
-  .workplane(origin=(0, 0, 0))
-  .cut(rib_cut_far.translate(( 0, length - (crush_rib_length / 2), 0)))
+  .faces(">Z")
+  .edges("%CIRCLE")
+  .chamfer(0.25)
+  #.union(watchy_fake)
 )
 
 case = rib_cut
 
 show_object(case)
 
-exporters.export(case, "wc2lf24.stl")
+exporters.export(case, "wc2lf24.step")
