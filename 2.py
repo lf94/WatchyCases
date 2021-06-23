@@ -24,30 +24,43 @@ inner_wall = taper_width + thickness
 p2 = (p1
   .faces(">Z")
   .workplane(origin=(0, 0, 0))
-  .transformed(offset=(thickness / 2, 0, -button_height), rotate=(0, 0, 90))
+  .transformed(offset=(thickness / 2, 0, -button_height - crush_rib_depth), rotate=(0, 0, 90))
   .pushPoints(btn_holes)
   .rect(button_width, thickness * 3.0)
   .cutBlind(button_height)
   .faces(">Z")
   .workplane(origin=(0, 0, 0))
-  .transformed(offset=(width - thickness / 2, 0, -button_height), rotate=(0, 0, 90))
+  .transformed(offset=(width - thickness / 2, 0, -button_height - crush_rib_depth), rotate=(0, 0, 90))
   .pushPoints(btn_holes)
   .rect(button_width, thickness * 3.0)
   .cutBlind(button_height)
 )
 
-p3 = (p2
+p2_5 = (p2
+  .faces(">Z")
+  .workplane(origin=(0, 0, 0))
+  .transformed(offset=(width - thickness / 2, length / 2 + 6.15, -crush_rib_depth), rotate=(0, 0, 90))
+  .rect(7.0, thickness * 4.0)
+  .cutBlind(-chip_height)
+  .faces(">Z")
+  .workplane(origin=(0, 0, 0))
+  .transformed(offset=(thickness / 2, length / 2 + 6.15, -crush_rib_depth), rotate=(0, 0, 90))
+  .rect(7.0, thickness * 4.0)
+  .cutBlind(-chip_height)
+)
+
+p3 = (p2_5
   .faces(">Z")
   .workplane(origin=(0, 0, 0))
   .transformed(
     offset=(
-      thickness / 2,
+      width - thickness / 2,
       (distance_to_usb_b + (usb_b_width / 2.0)),
-      0
+      -crush_rib_depth
     ),
     rotate=(0, 0, 90)
   )
-  .rect(usb_b_width, thickness * 3.0)
+  .rect(usb_b_width, thickness * 4.0)
   .cutBlind(-usb_b_height)
 )
 
@@ -56,26 +69,29 @@ p4 = (p3
   .workplane(origin=(0, 0, 0))
     .transformed(
       offset=(
-        width - thickness / 2,
+        thickness / 2,
         (distance_to_vibration_motor + (vibration_motor_width / 2.0)),
-        0
+        -crush_rib_depth
       ),
       rotate=(0, 0, 90)
      )
-  .rect(vibration_motor_width, thickness * 3.0)
+  .rect(vibration_motor_width, thickness * 4.0)
   .cutBlind(-vibration_motor_height)
 )
  
-
 p5 = (p4
   .edges(
       BoxSelector(
-      (0, 0, -usb_b_height),
+      (0, 0, -crush_rib_depth),
       (width, length, -highest),
     )
     - BoxSelector(
       (taper_width - thickness, taper_width - thickness, -usb_b_height),
       (width - (taper_width - thickness), length - (taper_width - thickness), -highest + thickness),
+    )
+    - BoxSelector(
+      (0, taper_width, -crush_rib_depth),
+      (width, length - taper_width, -highest + thickness),
     )
   )
   .fillet(case_fillet)
@@ -96,15 +112,15 @@ p7 = (p6
   .workplane(centerOption="CenterOfBoundBox", invert=True)
   .move(0, length / -2 + taper_width + thickness)
   .rect(tbar_24_retracted, tbar_cut_length)
-  .cutBlind(tbar_diameter)
+  .cutBlind(tbar_diameter + 1.0)
   .faces("<Z")
   .workplane(invert=True)
   .move(0, length / 2 - taper_width - thickness)
   .rect(tbar_24_retracted, tbar_cut_length)
-  .cutBlind(tbar_diameter)
+  .cutBlind(tbar_diameter + 1.0)
 )
 
-tbar_space = width / 2 - tbar_24_retracted / 2
+tbar_space = width / 2 - tbar_24_retracted / 2 + 3
 tbar_pin_x = tbar_space
 tbar_pin_y = inner_wall + tbar_diameter / 2
 
@@ -129,7 +145,7 @@ p9 = (p8
     + NearestToPointSelector((width - inner_wall, inner_wall + tbar_diameter, -highest / 2))
     + NearestToPointSelector((width - inner_wall, length - (inner_wall + tbar_diameter), -highest / 2))
   )
-  .fillet(0.5)
+  .fillet(0.30)
 )
 
 p10 = (p9
@@ -169,13 +185,13 @@ rib_sketch = (p10
 watchy_fake = (Workplane("XY")
   .move(width / 2, length / 2)
   .rect(width, length - crush_rib_length)
-  .extrude(1)
+  .extrude(-highest + crush_rib_depth)
 )
 
 rib_cut = (rib_sketch
   .faces(">Z")
   .edges("%CIRCLE")
-  .chamfer(0.25)
+  .chamfer(0.45)
   #.union(watchy_fake)
 )
 
