@@ -24,13 +24,13 @@ inner_wall = taper_width + thickness
 p2 = (p1
   .faces(">Z")
   .workplane(origin=(0, 0, 0))
-  .transformed(offset=(thickness / 2, 0, -button_height - crush_rib_depth), rotate=(0, 0, 90))
+  .transformed(offset=(thickness / 2, crush_rib_length / 2, -button_height - crush_rib_depth), rotate=(0, 0, 90))
   .pushPoints(btn_holes)
   .rect(button_width, thickness * 3.0)
   .cutBlind(button_height)
   .faces(">Z")
   .workplane(origin=(0, 0, 0))
-  .transformed(offset=(width - thickness / 2, 0, -button_height - crush_rib_depth), rotate=(0, 0, 90))
+  .transformed(offset=(width - thickness / 2, crush_rib_length / 2, -button_height - crush_rib_depth), rotate=(0, 0, 90))
   .pushPoints(btn_holes)
   .rect(button_width, thickness * 3.0)
   .cutBlind(button_height)
@@ -39,13 +39,13 @@ p2 = (p1
 p2_5 = (p2
   .faces(">Z")
   .workplane(origin=(0, 0, 0))
-  .transformed(offset=(width - thickness / 2, length / 2 + 6.15, -crush_rib_depth), rotate=(0, 0, 90))
-  .rect(7.0, thickness * 4.0)
+  .transformed(offset=(width - thickness / 2, length / 2, -crush_rib_depth), rotate=(0, 0, 90))
+  .rect(25.0, thickness * 4.0)
   .cutBlind(-chip_height)
   .faces(">Z")
   .workplane(origin=(0, 0, 0))
-  .transformed(offset=(thickness / 2, length / 2 + 6.15, -crush_rib_depth), rotate=(0, 0, 90))
-  .rect(7.0, thickness * 4.0)
+  .transformed(offset=(thickness / 2, length / 2, -crush_rib_depth), rotate=(0, 0, 90))
+  .rect(25.0, thickness * 4.0)
   .cutBlind(-chip_height)
 )
 
@@ -54,8 +54,8 @@ p3 = (p2_5
   .workplane(origin=(0, 0, 0))
   .transformed(
     offset=(
-      width - thickness / 2,
-      (distance_to_usb_b + (usb_b_width / 2.0)),
+      thickness / 2,
+      crush_rib_length / 2 + (distance_to_usb_b + (usb_b_width / 2.0)),
       -crush_rib_depth
     ),
     rotate=(0, 0, 90)
@@ -69,8 +69,8 @@ p4 = (p3
   .workplane(origin=(0, 0, 0))
     .transformed(
       offset=(
-        thickness / 2,
-        (distance_to_vibration_motor + (vibration_motor_width / 2.0)),
+        width - thickness / 2,
+        crush_rib_length / 2 + (distance_to_vibration_motor + (vibration_motor_width / 2.0)),
         -crush_rib_depth
       ),
       rotate=(0, 0, 90)
@@ -145,7 +145,7 @@ p9 = (p8
     + NearestToPointSelector((width - inner_wall, inner_wall + tbar_diameter, -highest / 2))
     + NearestToPointSelector((width - inner_wall, length - (inner_wall + tbar_diameter), -highest / 2))
   )
-  .fillet(0.30)
+  .fillet(1.00)
 )
 
 p10 = (p9
@@ -155,7 +155,7 @@ p10 = (p9
     + NearestToPointSelector((tbar_pin_x - 0.5, length - tbar_cut_length, -highest + thickness / 2))
     + NearestToPointSelector((width - tbar_pin_x + 0.5, length - tbar_cut_length, -highest + thickness / 2))
   )
-  .fillet(0.47)
+  .fillet(0.5)
 )
  
 crl = (length - crush_rib_length) + 1.0
@@ -163,21 +163,19 @@ crl = (length - crush_rib_length) + 1.0
 rib_sketch = (p10
   .faces(">Z")
   .workplane(origin=(0, crush_rib_length / 2 - 0.5, 0))
-  .hLine(1.0)
-  .sagittaArc((3.0, 0.0), 0.5)
+  .hLine(pcb_edge)
+  .sagittaArc((pcb_edge + 2.0, 0.0), 0.5)
   .hLineTo((width / 2) - 1.0)
-  .sagittaArc(((width / 2) + 1.0, 0.0), 0.5)
-  .hLineTo(width - 3.0)
-  .sagittaArc((width - 1.0, 0.0), 0.5)
-  .hLine(1.0)
+  .hLineTo((width - pcb_edge) - 2.0)
+  .sagittaArc((width - pcb_edge, 0.0), 0.5)
+  .hLine(pcb_edge)
   .vLine(crl)
-  .hLine(-1.0)
-  .sagittaArc((width - 3.0, crl), 0.5)
+  .hLine(-pcb_edge)
+  .sagittaArc(((width - pcb_edge) - 2.0, crl), 0.5)
   .hLineTo((width / 2) + 1.0)
-  .sagittaArc(((width / 2) - 1.0, crl), 0.5)
-  .hLineTo(3.0)
-  .sagittaArc((1.0, crl), 0.5)
-  .hLine(-1.0)
+  .hLineTo(pcb_edge + 2.0)
+  .sagittaArc((pcb_edge, crl), 0.5)
+  .hLine(-pcb_edge)
   .close()
   .cutBlind(-crush_rib_depth)
 )
@@ -199,4 +197,4 @@ case = rib_cut
 
 show_object(case)
 
-exporters.export(case, "wc2lf24.step")
+exporters.export(case, "wc2lf24.stl")
