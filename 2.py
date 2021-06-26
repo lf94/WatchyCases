@@ -98,8 +98,8 @@ p5 = (p4
 )
 
 p6 = (p5
-  .faces(NearestToPointSelector((width / 2, length - (taper_width + thickness), -highest / 2))).wires().toPending().translate((0, -tbar_diameter, 0)).toPending().loft()
-  .faces(NearestToPointSelector((width / 2, (taper_width + thickness), -highest / 2))).wires().toPending().translate((0, tbar_diameter, 0)).toPending().loft()
+  .faces(NearestToPointSelector((width / 2, length - (taper_width + thickness), -highest / 2))).wires().toPending().translate((0, -past_slot, 0)).toPending().loft()
+  .faces(NearestToPointSelector((width / 2, (taper_width + thickness), -highest / 2))).wires().toPending().translate((0, past_slot, 0)).toPending().loft()
 )
 
 tbar_taper_width = abs(tan(((90 - 75) / 180) * pi) * (highest - thickness))
@@ -112,12 +112,12 @@ p7 = (p6
   .workplane(centerOption="CenterOfBoundBox", invert=True)
   .move(0, length / -2 + taper_width + thickness)
   .rect(tbar_24_retracted, tbar_cut_length)
-  .cutBlind(tbar_diameter + 1.0)
+  .cutBlind(tbar_diameter + 0.5)
   .faces("<Z")
   .workplane(invert=True)
   .move(0, length / 2 - taper_width - thickness)
   .rect(tbar_24_retracted, tbar_cut_length)
-  .cutBlind(tbar_diameter + 1.0)
+  .cutBlind(tbar_diameter + 0.5)
 )
 
 tbar_space = width / 2 - tbar_24_retracted / 2 + 3
@@ -140,10 +140,12 @@ p9 = (p8
       NearestToPointSelector((inner_wall, length / 2, -highest + thickness))
     + NearestToPointSelector((inner_wall, inner_wall + tbar_diameter, -highest / 2))
     + NearestToPointSelector((inner_wall, length - (inner_wall + tbar_diameter), -highest / 2))
+    + NearestToPointSelector((width / 2, (inner_wall + tbar_diameter + 1), -highest + thickness))
 
     + NearestToPointSelector((width - inner_wall, length / 2, -highest + thickness))
     + NearestToPointSelector((width - inner_wall, inner_wall + tbar_diameter, -highest / 2))
     + NearestToPointSelector((width - inner_wall, length - (inner_wall + tbar_diameter), -highest / 2))
+    + NearestToPointSelector((width / 2, length - (inner_wall + tbar_diameter + 1), -highest + thickness))
   )
   .fillet(1.00)
 )
@@ -154,13 +156,29 @@ p10 = (p9
     + NearestToPointSelector((width - tbar_pin_x + 0.5, tbar_cut_length, -highest + thickness / 2))
     + NearestToPointSelector((tbar_pin_x - 0.5, length - tbar_cut_length, -highest + thickness / 2))
     + NearestToPointSelector((width - tbar_pin_x + 0.5, length - tbar_cut_length, -highest + thickness / 2))
+    + NearestToPointSelector((width / 2, length - tbar_cut_length, -highest + thickness / 2))
+    + NearestToPointSelector((width / 2, tbar_cut_length, -highest + thickness / 2))
+    + NearestToPointSelector((width - tbar_pin_x + 0.5, tbar_cut_length + 1, -highest + tbar_diameter / 2))
+    + NearestToPointSelector((tbar_pin_x + 0.5, tbar_cut_length + 1, -highest + tbar_diameter / 2))
+    + NearestToPointSelector((width - tbar_pin_x + 0.5, length - (tbar_cut_length + 1), -highest + tbar_diameter / 2))
+    + NearestToPointSelector((tbar_pin_x + 0.5, length - (tbar_cut_length + 1), -highest + tbar_diameter / 2))
+    + NearestToPointSelector((width / 2, tbar_cut_length, -highest + tbar_diameter))
+    + NearestToPointSelector((width / 2, length - tbar_cut_length, -highest + tbar_diameter))
+  )
+  .fillet(0.5)
+)
+
+p11 = (p10
+  .edges(
+    NearestToPointSelector((width / 2, taper_width, -highest + tbar_diameter))
+    + NearestToPointSelector((width / 2, length - taper_width, -highest + tbar_diameter))
   )
   .fillet(0.5)
 )
  
 crl = (length - crush_rib_length) + 1.0
 
-rib_sketch = (p10
+rib_sketch = (p11
   .faces(">Z")
   .workplane(origin=(0, crush_rib_length / 2 - 0.5, 0))
   .hLine(pcb_edge)
@@ -177,6 +195,14 @@ rib_sketch = (p10
   .sagittaArc((pcb_edge, crl), 0.5)
   .hLine(-pcb_edge)
   .close()
+  .moveTo((width / 2 + 27.5 / 2) - 2.1 / 2, to_pcb_slot_y + 3.2 / 2)
+  .circle(2 / 2)
+  .moveTo((width / 2 - 27.5 / 2) + 2.1 / 2, to_pcb_slot_y + 3.2 / 2)
+  .circle(2 / 2)
+  .moveTo((width / 2 + 27.5 / 2) - 2.1 / 2, length - (to_pcb_slot_y + 4.2))
+  .circle(2 / 2)
+  .moveTo((width / 2 - 27.5 / 2) + 2.1 / 2, length - (to_pcb_slot_y + 4.2))
+  .circle(2 / 2)
   .cutBlind(-crush_rib_depth)
 )
 

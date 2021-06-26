@@ -11,18 +11,20 @@ lowest  = 0.0
 highest = 8.6 + crush_rib_depth
 
 pcb_thickness = 1.5
-case_fillet   = 1.2
+case_fillet   = 2.1
 
 pcb_edge = 3.0
+to_pcb_slot_y = 1.9
 
-offset_to_button = 7.4
+offset_to_button_1 = 5.7
+offset_to_button_2 = 32.5
 
-chip_height = 1.2
+past_slot = 5.0
 
-button_width  = 5.0
+chip_height = 1.4
+
+button_width  = 6.7
 button_height = 2.0
-
-distance_between_buttons = 21.8
 
 vibration_motor_width  = 11.0
 vibration_motor_height = 2.8
@@ -34,8 +36,8 @@ distance_to_vibration_motor = 19.5
 distance_to_usb_b           = 17.9
 
 btn_holes = ([
-  (offset_to_button + (button_width / 2.0), 0.0),
-  (offset_to_button + button_width + distance_between_buttons + (button_width / 2.0), 0.0)
+  (offset_to_button_1 + (button_width / 2.0), 0.0),
+  (offset_to_button_2 + (button_width / 2.0), 0.0)
 ])
 
 tbar_22_extended  = 24.6
