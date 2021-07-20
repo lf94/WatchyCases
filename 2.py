@@ -8,7 +8,7 @@ import shared
 
 importlib.reload(shared)
 
-p1 = (Workplane("XY")
+base = (Workplane("XY")
   .transformed(offset=(width / 2, length / 2, 0))
   .rect(width, length)
   .extrude(-highest, taper=15)
@@ -21,7 +21,7 @@ rect_bottom_length = length - (taper_width  * 2)
 
 inner_wall = taper_width + thickness
 
-p2 = (p1
+with_button_cuts = (base
   .faces(">Z")
   .workplane(origin=(0, 0, 0))
   .transformed(offset=(thickness / 2, crush_rib_length / 2, -button_height - crush_rib_depth), rotate=(0, 0, 90))
@@ -36,7 +36,7 @@ p2 = (p1
   .cutBlind(button_height)
 )
 
-p2_5 = (p2
+with_chip_cuts = (with_button_cuts
   .faces(">Z")
   .workplane(origin=(0, 0, 0))
   .transformed(offset=(width - thickness / 2, length / 2, -crush_rib_depth), rotate=(0, 0, 90))
@@ -49,7 +49,7 @@ p2_5 = (p2
   .cutBlind(-chip_height)
 )
 
-p3 = (p2_5
+with_usb_cut = (with_chip_cuts
   .faces(">Z")
   .workplane(origin=(0, 0, 0))
   .transformed(
@@ -64,7 +64,7 @@ p3 = (p2_5
   .cutBlind(-usb_b_height)
 )
 
-p4 = (p3
+with_vib_cut = (with_usb_cut
   .faces(">Z")
   .workplane(origin=(0, 0, 0))
     .transformed(
@@ -79,7 +79,7 @@ p4 = (p3
   .cutBlind(-vibration_motor_height)
 )
  
-p5 = (p4
+with_outer_fillet = (with_vib_cut
   .edges(
       BoxSelector(
       (0, 0, -crush_rib_depth),
@@ -97,7 +97,7 @@ p5 = (p4
   .fillet(case_fillet)
 )
 
-p6 = (p5
+with_inner_far_sides_extruded = (with_outer_fillet
   .faces(NearestToPointSelector((width / 2, length - (taper_width + thickness), -highest / 2))).wires().toPending().translate((0, -past_slot, 0)).toPending().loft()
   .faces(NearestToPointSelector((width / 2, (taper_width + thickness), -highest / 2))).wires().toPending().translate((0, past_slot, 0)).toPending().loft()
 )
@@ -107,7 +107,7 @@ tbar_cut_length = thickness + tbar_diameter + tbar_taper_width
 
 rect_inner_width = (width - taper_width * 2) / -2 - thickness * 2
 
-p7 = (p6
+with_strap_cuts  = (with_inner_far_sides_extruded
   .faces("<Z")
   .workplane(centerOption="CenterOfBoundBox", invert=True)
   .move(0, length / -2 + taper_width + thickness)
@@ -124,7 +124,7 @@ tbar_space = width / 2 - tbar_24_retracted / 2 + 3
 tbar_pin_x = tbar_space
 tbar_pin_y = inner_wall + tbar_diameter / 2
 
-p8 = (p7
+with_rod_cuts = (with_strap_cuts
   .faces(NearestToPointSelector((tbar_pin_x, tbar_pin_y, -highest)))
     .workplane(centerOption="CenterOfBoundBox").circle(tbar_hole / 2).cutBlind(-tbar_pin_depth)
   .faces(NearestToPointSelector((width - tbar_pin_x, length - tbar_pin_y, -highest)))
@@ -135,7 +135,7 @@ p8 = (p7
     .workplane(centerOption="CenterOfBoundBox").circle(tbar_hole / 2).cutBlind(-tbar_pin_depth)
 )
 
-p9 = (p8
+with_inner_fillet = (with_rod_cuts
   .edges(
       NearestToPointSelector((inner_wall, length / 2, -highest + thickness))
     + NearestToPointSelector((inner_wall, inner_wall + tbar_diameter, -highest / 2))
@@ -147,10 +147,10 @@ p9 = (p8
     + NearestToPointSelector((width - inner_wall, length - (inner_wall + tbar_diameter), -highest / 2))
     + NearestToPointSelector((width / 2, length - (inner_wall + tbar_diameter + 1), -highest + thickness))
   )
-  .fillet(1.00)
+  .fillet(0.50)
 )
 
-p10 = (p9
+with_fillets_near_straps = (with_inner_fillet
   .edges(
       NearestToPointSelector((tbar_pin_x - 0.5, tbar_cut_length, -highest + thickness / 2))
     + NearestToPointSelector((width - tbar_pin_x + 0.5, tbar_cut_length, -highest + thickness / 2))
@@ -168,7 +168,7 @@ p10 = (p9
   .fillet(0.5)
 )
 
-p11 = (p10
+with_fillets_near_straps_2 = (with_fillets_near_straps
   .edges(
     NearestToPointSelector((width / 2, taper_width, -highest + tbar_diameter))
     + NearestToPointSelector((width / 2, length - taper_width, -highest + tbar_diameter))
@@ -178,31 +178,25 @@ p11 = (p10
  
 crl = (length - crush_rib_length) + 1.0
 
-rib_sketch = (p11
+rib_sketch = (with_fillets_near_straps_2
   .faces(">Z")
-  .workplane(origin=(0, crush_rib_length / 2 - 0.5, 0))
+  .workplane(origin=(0, crush_rib_length / 2 - (crush_rib_radius / 2), 0))
   .hLine(pcb_edge)
-  .sagittaArc((pcb_edge + 2.0, 0.0), 0.5)
-  .hLineTo((width / 2) - 1.0)
-  .hLineTo((width - pcb_edge) - 2.0)
-  .sagittaArc((width - pcb_edge, 0.0), 0.5)
+  .sagittaArc((pcb_edge + crush_rib_radius * 2, 0.0), crush_rib_sag)
+  .hLineTo((width / 2) - crush_rib_radius)
+  .sagittaArc(((width / 2) + crush_rib_radius, 0.0), crush_rib_sag)
+  .hLineTo((width - pcb_edge) - crush_rib_radius * 2)
+  .sagittaArc((width - pcb_edge, 0.0), crush_rib_sag)
   .hLine(pcb_edge)
   .vLine(crl)
   .hLine(-pcb_edge)
-  .sagittaArc(((width - pcb_edge) - 2.0, crl), 0.5)
-  .hLineTo((width / 2) + 1.0)
-  .hLineTo(pcb_edge + 2.0)
-  .sagittaArc((pcb_edge, crl), 0.5)
+  .sagittaArc(((width - pcb_edge) - crush_rib_radius * 2, crl), crush_rib_sag)
+  .hLineTo((width / 2) + crush_rib_radius)
+  .sagittaArc(((width / 2) - crush_rib_radius, crl), crush_rib_sag)
+  .hLineTo(pcb_edge + crush_rib_radius * 2)
+  .sagittaArc((pcb_edge, crl), crush_rib_sag)
   .hLine(-pcb_edge)
   .close()
-  .moveTo((width / 2 + 27.5 / 2) - 2.1 / 2, to_pcb_slot_y + 3.2 / 2)
-  .circle(2 / 2)
-  .moveTo((width / 2 - 27.5 / 2) + 2.1 / 2, to_pcb_slot_y + 3.2 / 2)
-  .circle(2 / 2)
-  .moveTo((width / 2 + 27.5 / 2) - 2.1 / 2, length - (to_pcb_slot_y + 4.2))
-  .circle(2 / 2)
-  .moveTo((width / 2 - 27.5 / 2) + 2.1 / 2, length - (to_pcb_slot_y + 4.2))
-  .circle(2 / 2)
   .cutBlind(-crush_rib_depth)
 )
 
@@ -215,12 +209,88 @@ watchy_fake = (Workplane("XY")
 rib_cut = (rib_sketch
   .faces(">Z")
   .edges("%CIRCLE")
-  .chamfer(0.45)
+  .chamfer(0.5)
   #.union(watchy_fake)
 )
 
-case = rib_cut
+face_holes_cut = (rib_cut
+  .faces(">Z[-2]")
+  .workplane()
+  .moveTo((width / 2 + 27.5 / 2) - 2.1 / 2, to_pcb_slot_y + 3.2 / 2)
+  .slot2D(2.8, 1.6)
+  .moveTo((width / 2 - 27.5 / 2) + 2.1 / 2, to_pcb_slot_y + 3.2 / 2)
+  .slot2D(2.8, 1.6)
+  .moveTo((width / 2 + 27.5 / 2) - 2.1 / 2, length - (to_pcb_slot_y + 4.2))
+  .slot2D(2.8, 1.6)
+  .moveTo((width / 2 - 27.5 / 2) + 2.1 / 2, length - (to_pcb_slot_y + 4.2))
+  .slot2D(2.8, 1.6)
+  .cutBlind(-4.0, taper=-10)
+  .faces(">Z[-2]")
+  .edges(
+    NearestToPointSelector(
+      ((width / 2 + 27.5 / 2) - 2.1 / 2, to_pcb_slot_y + 3.2 / 2, -crush_rib_depth)
+    )
+    + NearestToPointSelector(
+      ((width / 2 - 27.5 / 2) + 2.1 / 2, to_pcb_slot_y + 3.2 / 2, -crush_rib_depth),
+    )
+    + NearestToPointSelector(
+      ((width / 2 + 27.5 / 2) - 2.1 / 2, length - (to_pcb_slot_y + 4.2), -crush_rib_depth),
+    )
+    + NearestToPointSelector(
+      ((width / 2 - 27.5 / 2) + 2.1 / 2, length - (to_pcb_slot_y + 4.2), -crush_rib_depth)
+    )
+  )
+  .chamfer(0.5)
+)
 
-show_object(case)
+base = face_holes_cut
 
-exporters.export(case, "wc2lf24.stl")
+top_of_face =  (length / 2) - (29 / 2)
+
+face = (Workplane("XY")
+  .rect(width, length)
+  .extrude(0.4)
+  .faces("<Z")
+  .workplane()
+  .pushPoints([
+    (27.5 / 2 - 2.1 / 2, length / -2 + to_pcb_slot_y + 0.4 + crush_rib_depth),
+    (-27.5 / 2 + 2.1 / 2, length/ -2 + to_pcb_slot_y + 0.4 + crush_rib_depth),
+    (27.5 / 2 - 2.1 / 2, length / 2 - (to_pcb_slot_y + 0.4 + crush_rib_depth)),
+    (-27.5 / 2 + 2.1 / 2, length / 2 - (to_pcb_slot_y + 0.4 + crush_rib_depth)),
+  ])
+  .slot2D(2.8, 1.6)
+  .extrude(3.5)
+  .faces("<Z")
+  .chamfer(0.5)
+  .faces(">Z")
+  .workplane()
+  .move(0, top_of_face - 4.0 - crush_rib_depth)
+  .rect(29, 29)
+  .cutThruAll()
+  .edges("|Z")
+  .fillet(case_fillet)
+)
+
+
+case = (
+  Assembly()
+  .add(base, name="base")
+  .add(face, name="face")
+)
+
+#case.solve()
+
+show_object(base)
+
+svgopts = {
+  "width": 800,
+  "height": 800,
+  "marginLeft": 0,
+  "showHidden": False,
+  "projectionDir": (-1, 1, 0.2),
+}
+
+exporters.export(base, "pictures/wc2lf24_base.svg", opt=svgopts)
+exporters.export(face, "pictures/wc2lf24_face.svg", opt=svgopts)
+exporters.export(base, "printable/wc2lf24_base.amf")
+exporters.export(face, "printable/wc2lf24_face.amf")

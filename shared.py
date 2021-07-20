@@ -4,11 +4,13 @@ thickness = 1.0
 
 crush_rib_length = 3.6
 crush_rib_depth  = 1.6
+crush_rib_sag    = 0.6
+crush_rib_radius = 1.0
 
 width   = 33.8
 length  = 45.8 + crush_rib_length
 lowest  = 0.0
-highest = 8.6 + crush_rib_depth
+highest = 9.0 + crush_rib_depth
 
 pcb_thickness = 1.5
 case_fillet   = 2.1
@@ -17,11 +19,11 @@ pcb_edge = 3.0
 to_pcb_slot_y = 1.9
 
 offset_to_button_1 = 5.7
-offset_to_button_2 = 32.5
+offset_to_button_2 = 33.5
 
 past_slot = 5.0
 
-chip_height = 1.4
+chip_height = 1.6
 
 button_width  = 6.7
 button_height = 2.0
@@ -32,8 +34,8 @@ vibration_motor_height = 2.8
 usb_b_width  = 8.4
 usb_b_height = 3.0
 
-distance_to_vibration_motor = 19.5
-distance_to_usb_b           = 17.9
+distance_to_vibration_motor = 17.5
+distance_to_usb_b           = 18.5
 
 btn_holes = ([
   (offset_to_button_1 + (button_width / 2.0), 0.0),

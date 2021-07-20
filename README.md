@@ -25,4 +25,5 @@ Download CADQuery and run the script for the desired case.
 
 ### 2 - Optimize for size but support tbar straps and crush rib fitting
 
-![2](./pictures/2.png)
+![base](./pictures/wc2lf24_base.png)
+![face](./pictures/wc2lf24_face.png)
