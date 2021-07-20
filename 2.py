@@ -284,7 +284,7 @@ show_object(base)
 
 svgopts = {
   "width": 800,
-  "height": 800,
+  "height": 200,
   "marginLeft": 0,
   "showHidden": False,
   "projectionDir": (-1, 1, 0.2),
