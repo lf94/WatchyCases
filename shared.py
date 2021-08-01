@@ -50,3 +50,6 @@ tbar_pin_depth  = 1.0 # or tbar_extended - tbar_retracted
 tbar_thickness  = 3.5
 tbar_diameter   = 3.0
 tbar_hole       = 1.0
+
+stub_thickness = 1.6
+stub_length = 4.4

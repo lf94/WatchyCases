@@ -213,59 +213,58 @@ rib_cut = (rib_sketch
   #.union(watchy_fake)
 )
 
+face_hole_cut_depth = 4.0
+
 face_holes_cut = (rib_cut
   .faces(">Z[-2]")
-  .workplane()
-  .moveTo((width / 2 + 27.5 / 2) - 2.1 / 2, to_pcb_slot_y + 3.2 / 2)
-  .slot2D(2.8, 1.6)
-  .moveTo((width / 2 - 27.5 / 2) + 2.1 / 2, to_pcb_slot_y + 3.2 / 2)
-  .slot2D(2.8, 1.6)
-  .moveTo((width / 2 + 27.5 / 2) - 2.1 / 2, length - (to_pcb_slot_y + 4.2))
-  .slot2D(2.8, 1.6)
-  .moveTo((width / 2 - 27.5 / 2) + 2.1 / 2, length - (to_pcb_slot_y + 4.2))
-  .slot2D(2.8, 1.6)
-  .cutBlind(-4.0, taper=-10)
-  .faces(">Z[-2]")
+  .workplane(origin=(0, 0, 0))
+  .moveTo((width / 2 + 25.5 / 2) - 2.1 / 2, stub_thickness / 2 + crush_rib_length / 2 + to_pcb_slot_y)
+  .slot2D(stub_length, stub_thickness).tag("s1")
+  .moveTo((width / 2 - 25.5 / 2) + 2.1 / 2, stub_thickness / 2 + crush_rib_length / 2 + to_pcb_slot_y)
+  .slot2D(stub_length, stub_thickness).tag("s2")
+  .moveTo((width / 2 + 25.5 / 2) - 2.1 / 2, length - (stub_thickness / 2 + crush_rib_length / 2 + to_pcb_slot_y))
+  .slot2D(stub_length, stub_thickness).tag("s3")
+  .moveTo((width / 2 - 25.5 / 2) + 2.1 / 2, length - (stub_thickness / 2 + crush_rib_length / 2 + to_pcb_slot_y))
+  .slot2D(stub_length, stub_thickness).tag("s4")
+  .cutBlind(-face_hole_cut_depth, taper=-10)
   .edges(
-    NearestToPointSelector(
-      ((width / 2 + 27.5 / 2) - 2.1 / 2, to_pcb_slot_y + 3.2 / 2, -crush_rib_depth)
-    )
-    + NearestToPointSelector(
-      ((width / 2 - 27.5 / 2) + 2.1 / 2, to_pcb_slot_y + 3.2 / 2, -crush_rib_depth),
-    )
-    + NearestToPointSelector(
-      ((width / 2 + 27.5 / 2) - 2.1 / 2, length - (to_pcb_slot_y + 4.2), -crush_rib_depth),
-    )
-    + NearestToPointSelector(
-      ((width / 2 - 27.5 / 2) + 2.1 / 2, length - (to_pcb_slot_y + 4.2), -crush_rib_depth)
-    )
+      NearestToPointSelector(((width / 2 + 25.5 / 2) - 2.1 / 2, stub_thickness / 2 + crush_rib_length / 2 + to_pcb_slot_y, 0))
+    + NearestToPointSelector(((width / 2 - 25.5 / 2) + 2.1 / 2, stub_thickness / 2 + crush_rib_length / 2 + to_pcb_slot_y, 0))
+    + NearestToPointSelector(((width / 2 + 25.5 / 2) - 2.1 / 2, length - (stub_thickness / 2 + crush_rib_length / 2 + to_pcb_slot_y), 0))
+    + NearestToPointSelector(((width / 2 - 25.5 / 2) + 2.1 / 2, length - (stub_thickness / 2 + crush_rib_length / 2 + to_pcb_slot_y), 0))
   )
-  .chamfer(0.5)
+  .chamfer(0.6)
 )
 
 base = face_holes_cut
 
 top_of_face =  (length / 2) - (29 / 2)
 
+side_seal_height = 2.6
+
 face = (Workplane("XY")
-  .rect(width, length)
-  .extrude(0.4)
-  .faces("<Z")
+  .rect(width + 1.0, length)
+  .extrude(side_seal_height)
+  .faces(">Z")
+  .wires()
+  .toPending()
+  .offset2D(-0.6)
+  .cutBlind(-(side_seal_height - 0.8))
   .workplane()
   .pushPoints([
-    (27.5 / 2 - 2.1 / 2, length / -2 + to_pcb_slot_y + 0.4 + crush_rib_depth),
-    (-27.5 / 2 + 2.1 / 2, length/ -2 + to_pcb_slot_y + 0.4 + crush_rib_depth),
-    (27.5 / 2 - 2.1 / 2, length / 2 - (to_pcb_slot_y + 0.4 + crush_rib_depth)),
-    (-27.5 / 2 + 2.1 / 2, length / 2 - (to_pcb_slot_y + 0.4 + crush_rib_depth)),
+    (25.5 / 2 - 2.1 / 2,  length / -2 + (to_pcb_slot_y + (stub_thickness / 2) + crush_rib_length / 2)),
+    (-25.5 / 2 + 2.1 / 2, length/ -2  + (to_pcb_slot_y + (stub_thickness / 2) + crush_rib_length / 2)),
+    (25.5 / 2 - 2.1 / 2,  length / 2  - (to_pcb_slot_y + (stub_thickness / 2) + crush_rib_length / 2)),
+    (-25.5 / 2 + 2.1 / 2, length / 2  - (to_pcb_slot_y + (stub_thickness / 2) + crush_rib_length / 2)),
   ])
-  .slot2D(2.8, 1.6)
-  .extrude(3.5)
-  .faces("<Z")
-  .chamfer(0.5)
+  .slot2D(stub_length, stub_thickness)
+  .extrude(face_hole_cut_depth + 1.8)
   .faces(">Z")
+  .chamfer(0.5)
+  .faces("<Z")
   .workplane()
-  .move(0, top_of_face - 4.0 - crush_rib_depth)
-  .rect(29, 29)
+  .move(0, top_of_face - 5.8 - crush_rib_length / 2)
+  .rect(28.6, 28.4)
   .cutThruAll()
   .edges("|Z")
   .fillet(case_fillet)
@@ -280,7 +279,7 @@ case = (
 
 #case.solve()
 
-show_object(base)
+show_object(face)
 
 svgopts = {
   "width": 800,
@@ -294,3 +293,5 @@ exporters.export(base, "pictures/wc2lf24_base.svg", opt=svgopts)
 exporters.export(face, "pictures/wc2lf24_face.svg", opt=svgopts)
 exporters.export(base, "printable/wc2lf24_base.amf")
 exporters.export(face, "printable/wc2lf24_face.amf")
+exporters.export(base, "printable/wc2lf24_base.stl")
+exporters.export(face, "printable/wc2lf24_face.stl")
